@@ -1,59 +1,74 @@
 
 
 <template>
-    <div :class="[bigger ? biggerPrice : '',  lowerPrice] ">{{price}} </div>
+    <div :class=" {biggerPrice: bigger==true, lowerPrice: bigger==false, equalPrice: bigger==null }">{{props.ticker}} =
+        {{price}}$</div>
 </template>
 
 <script>
-export default {
-}
+export default {}
 </script>
 
-<script setup>
+<script setup >
 
-import { ref, defineProps, onMounted } from 'vue';
+
+
+import { ref, defineProps, onUnmounted, onBeforeMount, onMounted, } from 'vue';
 
 const props = defineProps(['ticker']);
 
-const price = ref('none');
+const price = ref(null);
 
-let bigger = ref(false);
+const lastPrice = ref(null);
 
-function getPrice() {
-    const response = fetch('https://api.binance.com/api/v3/ticker/price?symbol=' + props.ticker).then(response => {
-        response.json().then(jsonData => {
-            console.log(jsonData);
-            price.value = jsonData.symbol + " = " + jsonData.price + '$';
-            if (price.value > jsonData.price) {
-                bigger = false;
-            } else if (jsonData.price > price.value) {
-                bigger = true;
-            }
-        })
+let bigger = ref(null);
+
+
+
+onBeforeMount(() => {
+    getPrice().then(() => {
+        price.value = lastPrice.value;
     });
+});
+
+
+let updatePriceInterval = setInterval(async () => {
+    await getPrice();
+    if (price.value < lastPrice.value) {
+        bigger.value = true;
+    } else if (price.value > lastPrice.value) {
+        bigger.value = false;
+    }
+    price.value = lastPrice.value;
+}, 5000);
+
+
+
+async function getPrice() {
+    const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=' + props.ticker);
+    const data = await response.json();
+    lastPrice.value = data.price;
 }
 
-getPrice();
+
+onMounted(() => { updatePriceInterval });
 
 
-onMounted(() => {
-    setInterval(() => {
-        getPrice();
-    }, 5000)
-
-})
-
-console.log(props.ticker)
+onUnmounted(() => { clearInterval(updatePriceInterval) })
 
 </script>
 
 
 <style>
 .biggerPrice {
-    color: lime;
+    color: green;
 }
 
 .lowerPrice {
     color: red;
+}
+
+.equalPrice {
+    color: grey;
 }
 </style>
