@@ -1,8 +1,8 @@
 <template>
     <div>
         <input type="text" placeholder="Quantity of the BTC tokens" v-model="tokenQuantity">
-        <button @onclick="buyOnClick()">Buy</button>
-        <button @onclick="sellOnClick()">Sell</button>
+        <button @click="makeOrder(true)">Buy</button>
+        <button @click="makeOrder(false)">Sell</button>
         <div :class="{payback: payback, notPayback: !payback, equal: payback == null}">{{profit}}$</div>
     </div>
 </template>
@@ -12,20 +12,23 @@ export default {}
 </script>
 
 <script setup >
-import { onMounted, ref } from 'vue';
-
+import { ref } from 'vue';
+import getPrice from '../api/priceRequest';
 
 const tokenQuantity = ref(null);
-const BTCPrice = ref(null);
-const startBTCPrice = ref(null);
+const currentPrice = ref(null);
+const startPrice = ref(null);
 const profit = ref(0);
 const payback = ref(null);
+const BTCApi = 'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT';
 let profitUpdate = setInterval(async () => {
-    await intervalGetPrice();
-    if (BTCPrice.value * tokenQuantity.value > startBTCPrice.value * tokenQuantity.value || BTCPrice.value * tokenQuantity.value < startBTCPrice.value * tokenQuantity.value) {
-        profit.value = (BTCPrice.value * tokenQuantity.value) - (startBTCPrice.value * tokenQuantity.value)
+    currentPrice.value = await getPrice(BTCApi);
+    const spent = startPrice.value * tokenQuantity.value;
+    const payment = currentPrice.value * tokenQuantity.value;
+    if (payment > spent || payment < spent) {
+        profit.value = (payment) - (spent);
     } else {
-        profit.value = 0
+        profit.value = 0;
     }
     if (profit.value > 0) {
         payback.value = true;
@@ -34,27 +37,21 @@ let profitUpdate = setInterval(async () => {
     } else {
         payback.value = null;
     }
+
 }, 10000);
 
-onMounted(async () => {
-    const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-    const data = await response.json();
-    startBTCPrice.value = data.price;
-})
 
-async function intervalGetPrice() {
-    const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-    const data = await response.json();
-    BTCPrice.value = data.price;
+
+async function makeOrder(bool) {
+    if (bool) {
+        startPrice.value = await getPrice(BTCApi);
+        profitUpdate;
+    } else if (!bool) {
+        clearInterval(profitUpdate);
+    }
+
 }
 
-function buyOnClick() {
-    profitUpdate;
-}
-
-function sellOnClick() {
-    clearInterval(profitUpdate);
-}
 </script>
 
 <style>
