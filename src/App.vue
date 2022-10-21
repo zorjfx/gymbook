@@ -1,8 +1,9 @@
 <template>
     <!-- <VueHeader></VueHeader> -->
     <!-- <CryptoPrice ticker="BTCUSDT"></CryptoPrice> -->
-    <CryptoTrade></CryptoTrade>
-    <!-- <CryptoSelection></CryptoSelection> -->
+    <!-- <crypto-trade></crypto-trade>-->
+    <vue-parent :counter="clickedTimes"></vue-parent>
+    <vue-child @child-clicked="childButtonClicked"></vue-child>
 </template>
 
 <script>
@@ -16,6 +17,8 @@ import CryptoSelection from './components/CryptoSelection.vue';
 export default {
     components: { VueHeader, CryptoPrice, CryptoTrade, CryptoSelection }
 }
+
+
 </script>
 
 <style>

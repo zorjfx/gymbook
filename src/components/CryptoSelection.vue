@@ -4,11 +4,11 @@
             {{ cryptoPair.symbol }}
         </option>
     </select>
-
 </template>
 
 <script>
 export default {}
+
 
 </script>
 
@@ -26,8 +26,6 @@ onBeforeMount(async () => {
         cryptoPairs.value = result
     })
 })
-
-
 
 </script>
 
