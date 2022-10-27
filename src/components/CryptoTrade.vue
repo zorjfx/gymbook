@@ -7,7 +7,6 @@
         <button @click="onSell()">Sell</button>
         <div :class="{payback: payback, notPayback: !payback, equal: payback == null}">{{profit}}
         </div>
-        <button @click="onCloseDeal()">Close the deal</button>
     </div>
 </template>
 
