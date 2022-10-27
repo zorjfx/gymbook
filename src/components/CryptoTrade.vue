@@ -1,12 +1,11 @@
 <template>
     <div>
-        <input type="text" placeholder="Quantity of the BTC tokens" v-model="tokenQuantity">
-        <CryptoSelection @chosen="(chosenPair) => ticker.value = chosenPair">
-        </CryptoSelection>
-        <button @click="onBuy()">Buy</button>
-        <button @click="onSell()">Sell</button>
-        <div :class="{payback: payback, notPayback: !payback, equal: payback == null}">{{profit}}
-        </div>
+        <input type="text" placeholder="Quantity of the BTC tokens" v-model="newOrder.tokenQuantity">
+        <crypto-selection @chosen="(chosenPair) => newOrder.ticker = chosenPair"></crypto-selection>
+        <button @click="createOrder(false)">Buy</button>
+        <button @click="createOrder(true)">Sell</button>
+        <div :class="{profitGain: isProfit, profitLoss: !isProfit, noProfit: isProfit === null}">{{newOrder.profit}}</div>
+        <button @click="onCloseDeal()">Close</button>
     </div>
 </template>
 
@@ -15,71 +14,68 @@ export default {}
 </script>
 
 <script setup >
-import { onBeforeUnmount, ref } from 'vue';
+import { onBeforeUnmount, reactive, ref } from 'vue';
 import { getPrice } from '../api/cryptoAPI';
 import CryptoSelection from '../components/CryptoSelection.vue';
 
-const tokenQuantity = ref(null);
+const newOrder = reactive({
+    tokenQuantity: null,
+    currentPrice: null,
+    startPrice: null,
+    profit: null,
+    ticker: null,
+    isSell: null,
+});
 
-const currentPrice = ref(null);
-
-const startPrice = ref(null);
-
-const profit = ref(0);
-
-const payback = ref(null);
-
-const ticker = ref(null);
-
-const reverseProfit = ref(null);
-
-let profitUpdate = setInterval(async () => {
-    currentPrice.value = await getPrice(ticker);
-
-    const spent = startPrice.value * tokenQuantity.value;
-
-    const payment = currentPrice.value * tokenQuantity.value;
-
-    profit.value = (payment) - (spent);
-
-    if (profit.value > 0 && !reverseProfit.value || profit.value < 0 && reverseProfit.value) {
-        payback.value = true;
-    } else if (profit.value < 0 && !reverseProfit.value || profit.value > 0 && reverseProfit.value) {
-        payback.value = false;
-    }
-}, 10000);
+const isProfit = ref(null);
+const profitUpdateInterval = ref(null);
 
 
+async function createOrder(isSell) {
+    newOrder.startPrice = await getPrice(newOrder.ticker);
+    newOrder.isSell = isSell;
 
-async function onBuy() {
-    startPrice.value = await getPrice(ticker);
-}
+    profitUpdateInterval.value = setInterval(async () => {
+        newOrder.currentPrice = await getPrice(newOrder.ticker);
 
-async function onSell() {
-    startPrice.value = await getPrice(ticker);
-    reverseProfit.value = true;
+        const spent = newOrder.startPrice * newOrder.tokenQuantity;
+        const currentValue = newOrder.currentPrice * newOrder.tokenQuantity;
+
+        if(newOrder.isSell){
+            newOrder.profit = spent - currentValue;
+        }else{
+            newOrder.profit = currentValue - spent;
+        }
+
+        if(newOrder.profit === 0){
+            isProfit.value = null;
+        } else if(newOrder.isSell){
+            isProfit.value = newOrder.profit < 0;
+        }else{
+            isProfit.value = newOrder.profit > 0;
+        }
+    }, 100);
 }
 
 function onCloseDeal() {
-    clearInterval(profitUpdate);
+    clearInterval(profitUpdateInterval.value);
 }
 
 onBeforeUnmount(() => {
-    clearInterval(profitUpdate);
-})
-
+    clearInterval(profitUpdateInterval.value);
+});
 </script>
 
 <style>
-.payback {
+.profitGain {
     color: green;
 }
 
-.notPayback {
+.profitLoss {
     color: red;
 }
 
-.equal {
+.noProfit {
     color: grey;
 }
 </style>
