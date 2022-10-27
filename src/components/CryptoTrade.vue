@@ -62,7 +62,14 @@ function onCloseDeal() {
 }
 
 onBeforeUnmount(() => {
+    const a = [];
     clearInterval(profitUpdateInterval.value);
+    const i = 1;
+
+    while(i === 1){
+        alert(1);
+    }
+
 });
 </script>
 
