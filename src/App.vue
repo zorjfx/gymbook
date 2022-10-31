@@ -1,9 +1,7 @@
 <template>
     <!-- <VueHeader></VueHeader> -->
     <!-- <CryptoPrice ticker="BTCUSDT"></CryptoPrice> -->
-    <!-- <crypto-trade></crypto-trade>-->
-    <vue-parent :counter="clickedTimes"></vue-parent>
-    <vue-child @child-clicked="childButtonClicked"></vue-child>
+    <crypto-trade></crypto-trade>
 </template>
 
 <script>
