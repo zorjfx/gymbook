@@ -1,7 +1,8 @@
 <template>
     <!-- <VueHeader></VueHeader> -->
     <!-- <CryptoPrice ticker="BTCUSDT"></CryptoPrice> -->
-    <crypto-trade></crypto-trade>
+    <crypto-trade @deal-closed="(order) => closedDeal = order"></crypto-trade>
+    <crypto-history :order="closedDeal"></crypto-history>
 </template>
 
 <script>
@@ -10,11 +11,16 @@ import VueHeader from './components/VueHeader.vue';
 import CryptoPrice from './components/CryptoPrice.vue';
 import CryptoTrade from './components/CryptoTrade.vue';
 import CryptoSelection from './components/CryptoSelection.vue';
+import CryptoHistory from './components/CryptoHistory.vue';
+import { ref } from 'vue';
 
+const closedDeal = ref(null);
 
 export default {
-    components: { VueHeader, CryptoPrice, CryptoTrade, CryptoSelection }
+    components: { VueHeader, CryptoPrice, CryptoTrade, CryptoSelection, CryptoHistory }
 }
+
+
 
 
 </script>

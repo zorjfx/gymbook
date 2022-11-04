@@ -4,8 +4,9 @@
         <crypto-selection @chosen="(chosenPair) => newOrder.ticker = chosenPair"></crypto-selection>
         <button @click="createOrder(false)">Buy</button>
         <button @click="createOrder(true)">Sell</button>
-        <div :class="{profitGain: isProfit, profitLoss: !isProfit, noProfit: isProfit === null}">{{newOrder.profit}}</div>
-        <button @click="onCloseDeal()">Close</button>
+        <div :class="{ profitGain: isProfit, profitLoss: !isProfit, noProfit: isProfit === null }">{{ newOrder.profit }}
+        </div>
+        <button @click.prevent="onCloseDeal(), $emit('dealClosed', newOrder)">Close the deal</button>
     </div>
 </template>
 
@@ -20,11 +21,11 @@ import CryptoSelection from '../components/CryptoSelection.vue';
 
 const newOrder = reactive({
     tokenQuantity: null,
-    currentPrice: null,
-    startPrice: null,
     profit: null,
     ticker: null,
     isSell: null,
+    startTime: null,
+    closeTime: null,
 });
 
 const isProfit = ref(null);
@@ -34,6 +35,7 @@ const profitUpdateInterval = ref(null);
 async function createOrder(isSell) {
     newOrder.startPrice = await getPrice(newOrder.ticker);
     newOrder.isSell = isSell;
+    newOrder.startTime = new Date().toLocaleTimeString();
 
     profitUpdateInterval.value = setInterval(async () => {
         newOrder.currentPrice = await getPrice(newOrder.ticker);
@@ -41,35 +43,29 @@ async function createOrder(isSell) {
         const spent = newOrder.startPrice * newOrder.tokenQuantity;
         const currentValue = newOrder.currentPrice * newOrder.tokenQuantity;
 
-        if(newOrder.isSell){
+        if (newOrder.isSell) {
             newOrder.profit = spent - currentValue;
-        }else{
+        } else {
             newOrder.profit = currentValue - spent;
         }
 
-        if(newOrder.profit === 0){
+        if (newOrder.profit === 0) {
             isProfit.value = null;
-        } else if(newOrder.isSell){
+        } else if (newOrder.isSell) {
             isProfit.value = newOrder.profit < 0;
-        }else{
+        } else {
             isProfit.value = newOrder.profit > 0;
         }
-    }, 100);
+    }, 10000);
 }
 
 function onCloseDeal() {
     clearInterval(profitUpdateInterval.value);
+    newOrder.closeTime = new Date().toLocaleTimeString();
 }
 
 onBeforeUnmount(() => {
-    const a = [];
     clearInterval(profitUpdateInterval.value);
-    const i = 1;
-
-    while(i === 1){
-        alert(1);
-    }
-
 });
 </script>
 
