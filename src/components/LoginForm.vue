@@ -1,11 +1,13 @@
 <template>
     <div id="parent">
         <div id="child">
-            <h2>Create an account</h2>
-            <input type="text" placeholder="Username" v-model="username">
-            <input type="text" placeholder="Password" v-model="password">
+            <h2>Log in</h2>
+            <login-input @user-enter="(accountDataUsername) => username = accountDataUsername" placeholder="Username">
+            </login-input>
+            <login-input @user-enter="(accountDataPassword) => password = accountDataPassword" placeholder="Password">
+            </login-input>
             <div id="errorDiv">{{ errorInfo }}</div>
-            <button @click="accountDataValidate()" id="submitButton">Submit</button>
+            <button @click="loginDataValidate()" id="submitButton">Submit</button>
         </div>
     </div>
 </template>
@@ -18,14 +20,17 @@ export default {
 
 <script setup>
 import { ref } from 'vue';
-import { dataPost } from '../api/userAPI.js'
+import { HTTPAPIClient } from '../api/userAPI.js';
+import LoginInput from './LoginInput.vue';
+// `     `
 
 const username = ref('');
 const password = ref('');
 const onlyLatinRegex = /^[A-Za-z]*$/;
 const errorInfo = ref('');
+const HTTPAPIClientLogin = new HTTPAPIClient();
 
-function accountDataValidate() {
+function loginDataValidate() {
     errorInfo.value = '';
     if (!username.value || username.value.length == 0) {
         errorInfo.value += 'Username cant be empty ';
@@ -36,7 +41,7 @@ function accountDataValidate() {
     } else if (password.value && password.value.length <= 5) {
         errorInfo.value += 'Password is too short(min 5)';
     } else {
-        dataPost(username.value, password.value);
+        HTTPAPIClientLogin.dataPost(username.value, password.value);
     }
 }
 
