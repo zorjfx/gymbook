@@ -3,7 +3,6 @@
         <div id="child">
             <h2>{{ props.formTitle }}</h2>
             <slot></slot>
-            <div id="errorDiv">{{ props.errorInfo }}</div>
             <button id="submitButton" @click="props.onSubmitForm()">Submit</button>
         </div>
     </div>
@@ -15,11 +14,11 @@ export default {}
 
 <script setup>
 import { defineProps } from "vue";
-const props = defineProps(['formTitle', 'errorInfo', 'onSubmitForm']);
+
+const props = defineProps(['formTitle', 'onSubmitForm']);
 </script>
 
 <style scoped>
-
 #parent {
     width: 100%;
     height: 100%;
@@ -39,10 +38,6 @@ const props = defineProps(['formTitle', 'errorInfo', 'onSubmitForm']);
 h2 {
     margin: 0;
     padding: 0;
-}
-
-#errorDiv {
-    color: brown;
 }
 
 #submitButton {

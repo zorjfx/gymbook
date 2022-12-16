@@ -1,7 +1,10 @@
 <template>
     <base-form formTitle="Login" :onSubmitForm='loginDataValidate'>
-        <login-input @user-enter="(accountDataUsername) => username = accountDataUsername" placeholder="Username" />
-        <login-input @user-enter="(accountDataPassword) => password = accountDataPassword" placeholder="Password" />
+        <login-input @user-entered="(usernameData, errorInfo) => { username = usernameData; errorInfo += errorInfo }"
+            placeholder="Username" />
+        <login-input @user-entered="(passwordData, errorInfo) => { password = passwordData; errorInfo += errorInfo }"
+            placeholder="Password" />
+        <input-error :errorInfo="errorInfo"></input-error>
     </base-form>
 </template>
 
@@ -11,10 +14,10 @@ export default {}
 
 <script setup>
 import { ref } from 'vue';
-import { HTTPAPIClient } from '../../api/userAPI.js';
+import { HTTPAPIClient } from '../../api/httpClient.js';
 import LoginInput from './LoginInput.vue';
 import BaseForm from "./BaseForm.vue";
-
+import InputError from "./InputError.vue";
 
 const username = ref('');
 const password = ref('');
@@ -25,13 +28,17 @@ const httpAPIClientLogic = new HTTPAPIClient();
 
 function loginDataValidate() {
     errorInfo.value = '';
-
-    if (!onlyLatinRegex.test(username.value)) {
-        errorInfo.value += 'Username can contain only latin ';
+    if (!username.value || username.value.length === 0) {
+        errorInfo.value = 'Username cannot be empty';
+    } else if (!password.value || password.value.length === 0) {
+        errorInfo.value = 'Password cannot be empty';
+    }
+    else if (!onlyLatinRegex.test(username.value)) {
+        errorInfo.value += 'Username can only contain latin ';
     } else if (password.value && password.value.length <= 5) {
         errorInfo.value += 'Password is too short(min 5)';
     } else {
-        httpAPIClientLogic.dataPost(username.value, password.value);
+        httpAPIClientLogic.makeRequest(username.value, password.value);
     }
 }
 </script>
